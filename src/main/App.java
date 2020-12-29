@@ -5,40 +5,41 @@
  */
 package main;
 
+import java.util.LinkedList;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import system.BT;
 
 /**
  *
  * @author El Pitagoras
  */
 public class App extends Application {
+    static Pane root;
     
     @Override
     public void start(Stage primaryStage) {
-        Button btn = new Button();
-        btn.setText("Say 'Hello World'");
-        btn.setOnAction(new EventHandler<ActionEvent>() {
-            
-            @Override
-            public void handle(ActionEvent event) {
-                System.out.println("Hello World!");
-            }
-        });
         
-        StackPane root = new StackPane();
-        root.getChildren().add(btn);
-        
-        Scene scene = new Scene(root, 300, 250);
-        
+        root = new Pane();
+        BT<Integer> arbol = new BT<>();
+        Scene scene = new Scene(root, 800, 600);
+        LinkedList<String> ll = new LinkedList<>();
+        ll.add("-");
+        ll.add(".");
+        ll.add(".");
+        ll.add("-");
+        ll.add(".");
         primaryStage.setTitle("Hello World!");
         primaryStage.setScene(scene);
         primaryStage.show();
+        arbol.añadirMorse("A", ll);
     }
 
     /**
@@ -48,4 +49,7 @@ public class App extends Application {
         launch(args);
     }
     
+    public static void agregarNodo(Node n) {
+        root.getChildren().add(n);
+    }
 }
