@@ -5,7 +5,10 @@
  */
 package main;
 
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -28,18 +31,15 @@ public class App extends Application {
     public void start(Stage primaryStage) {
         
         root = new Pane();
-        BT<Integer> arbol = new BT<>();
+        BT<String> arbol = new BT<>();
         Scene scene = new Scene(root, 800, 600);
-        LinkedList<String> ll = new LinkedList<>();
-        ll.add("-");
-        ll.add(".");
-        ll.add(".");
-        ll.add("-");
-        ll.add(".");
         primaryStage.setTitle("Hello World!");
         primaryStage.setScene(scene);
         primaryStage.show();
-        arbol.añadirMorse("A", ll);
+        HashMap<String,List<String>> mapaMorse = arbol.leerTraducciones();
+        for(Map.Entry<String,List<String>> dato : mapaMorse.entrySet()){
+            arbol.añadirMorse(dato.getKey(),dato.getValue());
+        }
     }
 
     /**

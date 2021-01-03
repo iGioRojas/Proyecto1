@@ -5,13 +5,16 @@
  */
 package system;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Scanner;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
+import javafx.scene.text.Text;
 import main.App;
 
 /**
@@ -33,7 +36,7 @@ public class BT<E> {
         private double posX;
         private double posY;
         
-        private String evento;
+        private Text evento;        
         private double probabilidad;
         
         public Node(E data) {
@@ -45,9 +48,9 @@ public class BT<E> {
             this.data = data;
             this.posX = posX;
             this.posY = posY;
-            circulo = new Circle(5);
-            circulo.setLayoutX(posX);
-            circulo.setLayoutY(posY);
+            evento = new Text((String) data);
+            evento.setLayoutX(posX);
+            evento.setLayoutY(posY);
         }
     }
     
@@ -56,26 +59,26 @@ public class BT<E> {
     }
     
     public boolean add(E child, E parent) {
-        Node<E> nchild = new Node<>(child, 400, 50);
-        if (isEmpty() && parent == null) {
-            root = nchild;
+    Node<E> nchild = new Node<>(child, 400, 50);
+    if (isEmpty() && parent == null) {
+    root = nchild;
             dibujarNodo(root);
-            return true;
-        }
-        Node<E> np = searchNode(parent);
-        Node<E> nce = searchNode(child);
-        if (nce == null && np != null) {
-            if (np.left == null) {
-                np.left = nchild;
+    return true;
+    }
+    Node<E> np = searchNode(parent);
+    Node<E> nce = searchNode(child);
+    if (nce == null && np != null) {
+    if (np.left == null) {
+    np.left = nchild;
                 dibujarNodo(nchild);
-                return true;
-            } else if (np.right == null) {
-                np.right = nchild;
+    return true;
+    } else if (np.right == null) {
+    np.right = nchild;
                 dibujarNodo(nchild);
-                return true;
-            }
-        }
-        return false;
+    return true;
+    }
+    }
+    return false;
     }
     
     public boolean remove(E data) {
@@ -164,28 +167,6 @@ public class BT<E> {
         }
     }
     
-    public E decision(List<String> lado) {
-        Node<E> resultado = decision(new LinkedList<>(lado), root);
-        return resultado != null ? resultado.data : (E) "Incertidumbre";
-    }
-    
-    private Node<E> decision(Queue<String> lado, Node<E> n) {
-        String l = "";
-        if (!lado.isEmpty()) {
-            l = lado.poll();
-        }
-        if (n == null) {
-            return null;
-        } else if (l.equals("YES")) {
-            return decision(lado, n.right);
-        } else if (l.equals("NO")) {
-            return decision(lado, n.left);
-        } else if (n.left == null && n.right == null) {
-            return n;
-        }
-        return null;
-    }
-    
     public String codificarMorse(Queue<String> codigos) {
         return codificarMorse(codigos, root);
     }
@@ -221,7 +202,7 @@ public class BT<E> {
             case ".":
                 if (n.right == null) {
                     int nivel = (int) (n.posY/50);
-                    n.right = new Node<>((E) signo, n.posX + (n.hVentana/(nivel * 2)), n.posY + 50);
+                    n.right = new Node<>((E) letra, n.posX + (n.hVentana/(nivel * 2)), n.posY + 50);
                     dibujarNodo(n.right);
                     dibujarLinea(n, n.right);
                     System.out.println("Derecha");
@@ -230,21 +211,41 @@ public class BT<E> {
             case "-":
                 if (n.left == null) {
                     int nivel = (int) (n.posY/50);
-                    n.left = new Node<>((E) signo, n.posX - (n.hVentana/(nivel * 2)), n.posY + 50);
+                    n.left = new Node<>((E) letra, n.posX - (n.hVentana/(nivel * 2)), n.posY + 50);
                     dibujarNodo(n.left);
                     dibujarLinea(n, n.left);
                     System.out.println("Izquierda");
                 }
                 return añadirMorse(letra, path, n.left);
             default:
-                n.data = (E) letra;
-                break;
+            n.data = (E) letra;
+            break;
         }
         return true;
+    }    
+    public HashMap<String,List<String>> leerTraducciones(){
+        HashMap<String,List<String>> mapaMorse = new HashMap<>();
+        try (Scanner sc = new Scanner(new File("traducciones.txt"))) {
+            while (sc.hasNextLine()) {
+                String[] codigoMorse = sc.nextLine().split("\\|");
+                List<String> morse = new LinkedList<>();
+                String codigo = codigoMorse[1].replace(" ","");
+                for (int i = 0; i < codigo.length(); i++) {
+                    char c = codigo.charAt(i);
+                    morse.add(c+"");
+                }
+                mapaMorse.put(codigoMorse[0],morse);
+            }
+        } catch (Exception e) {
+            System.out.println("No hay codes");
+        }
+        System.out.println(mapaMorse.entrySet());
+        System.out.println(mapaMorse.size());
+        return mapaMorse;
     }
     
     private void dibujarNodo(Node<E> n){
-        App.agregarNodo(n.circulo);
+        App.agregarNodo(n.evento);
     }
     
     private void dibujarLinea(Node<E> ini, Node<E> fin) {
@@ -268,19 +269,6 @@ public class BT<E> {
         App.agregarNodo(line);
     }
     
-    public double estimarProbabilidad(String palabra) {
-        return estimarProbabilidad(palabra, root);
-    }
-    
-    private double estimarProbabilidad(String palabra, Node<E> n) {
-        if (n == null) {
-            return 0;
-        } else if (n.evento.equals(palabra)) {
-            return n.probabilidad;
-        } else {
-            return n.probabilidad * (estimarProbabilidad(palabra, n.left) + estimarProbabilidad(palabra, n.right));
-        }
-    }
     
     public void anchura() {
         if (!isEmpty()) {
