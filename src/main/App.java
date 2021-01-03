@@ -5,40 +5,41 @@
  */
 package main;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import system.BT;
 
 /**
  *
  * @author El Pitagoras
  */
 public class App extends Application {
+    static Pane root;
     
     @Override
     public void start(Stage primaryStage) {
-        Button btn = new Button();
-        btn.setText("Say 'Hello World'");
-        btn.setOnAction(new EventHandler<ActionEvent>() {
-            
-            @Override
-            public void handle(ActionEvent event) {
-                System.out.println("Hello World!");
-            }
-        });
         
-        StackPane root = new StackPane();
-        root.getChildren().add(btn);
-        
-        Scene scene = new Scene(root, 300, 250);
-        
+        root = new Pane();
+        BT<String> arbol = new BT<>();
+        Scene scene = new Scene(root, 800, 600);
         primaryStage.setTitle("Hello World!");
         primaryStage.setScene(scene);
         primaryStage.show();
+        HashMap<String,List<String>> mapaMorse = arbol.leerTraducciones();
+        for(Map.Entry<String,List<String>> dato : mapaMorse.entrySet()){
+            arbol.añadirMorse(dato.getKey(),dato.getValue());
+        }
     }
 
     /**
@@ -48,4 +49,7 @@ public class App extends Application {
         launch(args);
     }
     
+    public static void agregarNodo(Node n) {
+        root.getChildren().add(n);
+    }
 }
