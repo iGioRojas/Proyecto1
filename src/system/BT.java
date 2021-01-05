@@ -37,7 +37,6 @@ public class BT<E> {
         private double posY;
         
         private Text evento;        
-        private double probabilidad;
         
         public Node(E data) {
             this.data = data;
@@ -48,9 +47,17 @@ public class BT<E> {
             this.data = data;
             this.posX = posX;
             this.posY = posY;
+            circulo = new Circle();
+            circulo.setLayoutX(posX+5);
+            circulo.setLayoutY(posY-4);
+            circulo.setScaleX(20);
+            circulo.setScaleY(20);
+            circulo.setStroke(Color.BLACK);
             evento = new Text((String) data);
             evento.setLayoutX(posX);
             evento.setLayoutY(posY);
+            evento.setFill(Color.WHITE);
+            
         }
     }
     
@@ -59,26 +66,28 @@ public class BT<E> {
     }
     
     public boolean add(E child, E parent) {
-    Node<E> nchild = new Node<>(child, 400, 50);
-    if (isEmpty() && parent == null) {
-    root = nchild;
+        Node<E> nchild = new Node<>(child, 300, 50);
+        nchild.evento.setLayoutX(nchild.posX-10);
+        nchild.circulo.setScaleX(50);
+        if (isEmpty() && parent == null) {
+            root = nchild;
             dibujarNodo(root);
-    return true;
-    }
-    Node<E> np = searchNode(parent);
-    Node<E> nce = searchNode(child);
-    if (nce == null && np != null) {
-    if (np.left == null) {
-    np.left = nchild;
+            return true;
+        }
+        Node<E> np = searchNode(parent);
+        Node<E> nce = searchNode(child);
+        if (nce == null && np != null) {
+            if (np.left == null) {
+                np.left = nchild;
                 dibujarNodo(nchild);
-    return true;
-    } else if (np.right == null) {
-    np.right = nchild;
+                return true;
+            } else if (np.right == null) {
+                np.right = nchild;
                 dibujarNodo(nchild);
-    return true;
-    }
-    }
-    return false;
+                return true;
+            }
+        }
+        return false;
     }
     
     public boolean remove(E data) {
@@ -190,35 +199,35 @@ public class BT<E> {
     
     public boolean añadirMorse(String letra, List<String> path) {
         add((E) "Inicio", null);
-        return añadirMorse(letra, new LinkedList<>(path), root);
+        return añadirMorse(letra, new LinkedList<>(path), root,29);
     }
     
-    private boolean añadirMorse(String letra, Queue<String> path, Node<E> n) {
+    private boolean añadirMorse(String letra, Queue<String> path, Node<E> n,int niv) {
         String signo = "";
         if (!path.isEmpty()) {
             signo = path.poll();
         }
+        niv-=1;
         switch (signo) {
             case ".":
                 if (n.right == null) {
                     int nivel = (int) (n.posY/50);
-                    n.right = new Node<>((E) letra, n.posX + (n.hVentana/(nivel * 2)), n.posY + 50);
-                    dibujarNodo(n.right);
-                    dibujarLinea(n, n.right);
-                    System.out.println("Derecha");
+                    n.right = new Node<>((E) letra, n.posX + (n.hVentana/(nivel * 2)) - niv, n.posY + 55);
+                    dibujarLinea(n, n.right); 
                 }
-                return añadirMorse(letra, path, n.right);
+                return añadirMorse(letra, path, n.right,niv);
             case "-":
                 if (n.left == null) {
                     int nivel = (int) (n.posY/50);
-                    n.left = new Node<>((E) letra, n.posX - (n.hVentana/(nivel * 2)), n.posY + 50);
-                    dibujarNodo(n.left);
+                    n.left = new Node<>((E) letra, n.posX - (n.hVentana/(nivel * 2))+niv, n.posY + 55);
                     dibujarLinea(n, n.left);
-                    System.out.println("Izquierda");
+
                 }
-                return añadirMorse(letra, path, n.left);
+                return añadirMorse(letra, path, n.left,niv);
             default:
             n.data = (E) letra;
+            n.evento.setText(n.data.toString());
+            dibujarNodo(n);
             break;
         }
         return true;
@@ -245,12 +254,13 @@ public class BT<E> {
     }
     
     private void dibujarNodo(Node<E> n){
+        App.agregarNodo(n.circulo);
         App.agregarNodo(n.evento);
     }
     
     private void dibujarLinea(Node<E> ini, Node<E> fin) {
         Line line = new Line();
-        int offset = 6;
+        int offset = 1;
         double difX = Math.abs(ini.posX - fin.posX);
         double difY = Math.abs(fin.posY - ini.posY);
         double ang = Math.atan(difY/difX);
