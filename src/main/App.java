@@ -5,6 +5,7 @@
  */
 package main;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,14 +15,11 @@ import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import system.BT;
@@ -32,85 +30,116 @@ import system.Sonido;
  * @author El Pitagoras
  */
 public class App extends Application {
-    static Pane root;
-    private Button enviar;
-    private TextField codigo;
+
+    public static Pane root;
+    private Button enviar = new Button("Enviar");
+    private TextField codigo = new TextField();
     private Text textoAdvertencia = new Text();
-    private BT<String> arbol = new BT<>();
-    
+    public static BT<String> arbol = new BT<>();
+    private Text nombrePagina = new Text("Árbol de Código Morse");
+
     @Override
     public void start(Stage primaryStage) {
-        
+
         root = new Pane();
         Scene scene = new Scene(root, 600, 450);
         primaryStage.setTitle("TreeMorse");
         primaryStage.setScene(scene);
         primaryStage.show();
-        enviar = new Button("Enviar");
-        codigo = new TextField();
-        enviar.setLayoutX(380);
-        enviar.setLayoutY(400);
-        codigo.setLayoutX(180);
-        codigo.setLayoutY(400);
-        textoAdvertencia.setLayoutX(180);
-        textoAdvertencia.setLayoutY(440);
-        root.getChildren().add(enviar);
-        root.getChildren().add(codigo);
-        root.getChildren().add(textoAdvertencia);
-        HashMap<String,List<String>> mapaMorse = arbol.leerTraducciones();
-        for(Map.Entry<String,List<String>> dato : mapaMorse.entrySet()){
-            arbol.añadirMorse(dato.getKey(),dato.getValue());
+        posicion();
+        addNodes();
+        HashMap<String, List<String>> mapaMorse = arbol.leerTraducciones();
+        for (Map.Entry<String, List<String>> dato : mapaMorse.entrySet()) {
+            arbol.añadirMorse(dato.getKey(), dato.getValue());
         }
-        Circle cir = arbol.movCirculo();
         accionBoton(enviar);
-        
+
     }
+
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         launch(args);
     }
-    
+
     public static void agregarNodo(Node n) {
         root.getChildren().add(n);
     }
-    
-    public void accionBoton(Button boton){
-        boton.setOnAction((new EventHandler<ActionEvent>(){
+
+    public void accionBoton(Button boton) {
+        boton.setOnAction((new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-               if(verificarCode(codigo.getText())){
-                String morse = codigo.getText().replace(" ","");
-                textoAdvertencia.setText("");
-                Sonido audio = new Sonido();
-                audio.setCode(morse);
-                audio.start();
-                audio = null;
+                if (verificarCode(codigo.getText())) {
+                    String morse = codigo.getText().replace(" ", "");
+                    textoAdvertencia.setText("");
+                    arbol.listaCirculos = new ArrayList<>();
+                    textoAdvertencia.setText("El resultado es: "+arbol.codificarMorse(listaCodes(morse)));
+                    Sonido audio = new Sonido();
+                    audio.setCode(morse);
+                    audio.start();
+                    audio = null;
+                } else {
+                    textoAdvertencia.setText("El código es Incorrecto, agregue solo . y -");
+                }
             }
-            else{
-                textoAdvertencia.setText("El código es Incorrecto, agregue solo . y -");
-            }
-            }    
         }));
     }
-    public boolean verificarCode(String texto){
+
+    public boolean verificarCode(String texto) {
         for (int i = 0; i < texto.length(); i++) {
-             char c = texto.charAt(i);
-             if(c!= '.' && c!= '-'){
-                 return false;
-             }
+            char c = texto.charAt(i);
+            if (c != '.' && c != '-') {
+                return false;
+            }
         }
         return true;
     }
-    
-    public Queue<String> listaCodes(String valor){
+
+    public static Queue<String> listaCodes(String valor) {
         Queue<String> cola = new LinkedList<>();
         for (int i = 0; i < valor.length(); i++) {
             char c = valor.charAt(i);
-            cola.offer(c+"");     
+            cola.offer(c + "");
         }
-        
+
         return cola;
+    }
+
+    public static ArrayList<Node> getAllNodes(Parent root) {
+        ArrayList<Node> nodes = new ArrayList<>();
+        addAllDescendents(root, nodes);
+        return nodes;
+    }
+
+    private static void addAllDescendents(Parent parent, ArrayList<Node> nodes) {
+        for (Node node : parent.getChildrenUnmodifiable()) {
+            nodes.add(node);
+            if (node instanceof Parent) {
+                addAllDescendents((Parent) node, nodes);
+            }
+        }
+    }
+
+    public void addNodes() {
+        root.getChildren().add(enviar);
+        root.getChildren().add(codigo);
+        root.getChildren().add(textoAdvertencia);
+        root.getChildren().add(nombrePagina);
+    }
+
+    public void posicion() {
+        enviar.setLayoutX(380);
+        enviar.setLayoutY(390);
+        codigo.setLayoutX(180);
+        codigo.setLayoutY(390);
+        textoAdvertencia.setLayoutX(180);
+        textoAdvertencia.setLayoutY(440);
+        nombrePagina.setLayoutX(20);
+        nombrePagina.setLayoutY(50);
+        nombrePagina.setScaleX(1.1);
+        nombrePagina.setScaleY(3);
+
     }
 }
