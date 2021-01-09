@@ -196,7 +196,7 @@ public class BT<E> {
         } 
         return "";
     }
-    
+
     public boolean añadirMorse(String letra, List<String> path) {
         add((E) "Inicio", null);
         return añadirMorse(letra, new LinkedList<>(path), root,29);
@@ -308,5 +308,14 @@ public class BT<E> {
             postOrden(p.right);
             System.out.print(p.data);
         }
+    }
+    
+    public Circle movCirculo(){
+        Circle cir = new Circle(7);
+        cir.setFill(Color.GREEN);
+        cir.setLayoutX(root.posX);
+        cir.setLayoutY(root.posY - 22);  
+        App.agregarNodo(cir); 
+        return cir;
     }
 }
