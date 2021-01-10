@@ -10,7 +10,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
-import main.App;
 
 /**
  *
@@ -22,7 +21,7 @@ public class Sonido extends Thread {
     private MediaPlayer reproductor;
     private boolean detener = false;
     private String code;
-
+    
     public Media getAudio() {
         return audio;
     }
@@ -69,8 +68,6 @@ public class Sonido extends Thread {
     @Override
     public void run() {
         sonar();
-        App.arbol.cambiarColor(App.arbol.listaCirculos);
-
     }
 
     public MediaPlayer getReproductor() {

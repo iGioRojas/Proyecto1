@@ -42,7 +42,7 @@ public class App extends Application {
     public void start(Stage primaryStage) {
 
         root = new Pane();
-        Scene scene = new Scene(root, 600, 450);
+        Scene scene = new Scene(root, 800, 600);
         primaryStage.setTitle("TreeMorse");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -72,9 +72,9 @@ public class App extends Application {
             @Override
             public void handle(ActionEvent event) {
                 if (verificarCode(codigo.getText())) {
+                    arbol.reiniciarColor();
                     String morse = codigo.getText().replace(" ", "");
                     textoAdvertencia.setText("");
-                    arbol.listaCirculos = new ArrayList<>();
                     textoAdvertencia.setText("El resultado es: "+arbol.codificarMorse(listaCodes(morse)));
                     Sonido audio = new Sonido();
                     audio.setCode(morse);
@@ -130,15 +130,15 @@ public class App extends Application {
     }
 
     public void posicion() {
-        enviar.setLayoutX(380);
+        enviar.setLayoutX(480);
         enviar.setLayoutY(390);
-        codigo.setLayoutX(180);
+        codigo.setLayoutX(280);
         codigo.setLayoutY(390);
-        textoAdvertencia.setLayoutX(180);
+        textoAdvertencia.setLayoutX(280);
         textoAdvertencia.setLayoutY(440);
-        nombrePagina.setLayoutX(20);
+        nombrePagina.setLayoutX(120);
         nombrePagina.setLayoutY(50);
-        nombrePagina.setScaleX(1.1);
+        nombrePagina.setScaleX(2);
         nombrePagina.setScaleY(3);
 
     }

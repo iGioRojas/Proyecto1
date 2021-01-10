@@ -16,6 +16,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import main.App;
 
 /**
@@ -25,8 +26,8 @@ import main.App;
 public class BT<E> {
 
     private Node<E> root;
-    public ArrayList<javafx.scene.shape.Circle> listaCirculos = new ArrayList<>();
-
+    private double hVentana = 800/2;
+    
     private class Node<E> {
 
         private E data;
@@ -34,10 +35,9 @@ public class BT<E> {
         private Node<E> right;
 
         private Circle circulo;
-        private double hVentana;
+        
         private double posX;
         private double posY;
-
         private Text evento;
 
         public Node(E data) {
@@ -45,19 +45,15 @@ public class BT<E> {
         }
 
         public Node(E data, double posX, double posY) {
-            this.hVentana = 600 / 2;
             this.data = data;
             this.posX = posX;
             this.posY = posY;
-            circulo = new Circle();
-            circulo.setLayoutX(posX + 5);
-            circulo.setLayoutY(posY - 4);
-            circulo.setScaleX(20);
-            circulo.setScaleY(20);
+            circulo = new Circle(posX + 5, posY - 5, 10);
             circulo.setStroke(Color.BLACK);
             evento = new Text((String) data);
             evento.setLayoutX(posX);
             evento.setLayoutY(posY);
+            evento.setTextAlignment(TextAlignment.CENTER);
             evento.setFill(Color.WHITE);
 
         }
@@ -68,9 +64,9 @@ public class BT<E> {
     }
 
     public boolean add(E child, E parent) {
-        Node<E> nchild = new Node<>(child, 300, 50);
+        Node<E> nchild = new Node<>(child, hVentana, 50);
         nchild.evento.setLayoutX(nchild.posX - 10);
-        nchild.circulo.setScaleX(50);
+        nchild.circulo.setScaleX(3);
         if (isEmpty() && parent == null) {
             root = nchild;
             dibujarNodo(root);
@@ -149,25 +145,27 @@ public class BT<E> {
             return searchParent(data, n.right);
         }
     }
-
-    public String codificarMorse(Queue<String> cola) {
-
-        StringBuilder sb = new StringBuilder();
-        Node<E> nodoViajero = root;
-        ArrayList<javafx.scene.Node> nodosEscena = App.getAllNodes(App.root);
-        while (!cola.isEmpty()) {
-            if (cola.peek().equals("-")) {
-                nodoViajero = nodoViajero.left;
-            } else {
-                nodoViajero = nodoViajero.right;
-            }
-            Circle circulo = (Circle) nodosEscena.get(nodosEscena.indexOf(nodoViajero.circulo));
-            circulo.setStroke(Color.LIGHTGREEN);
-            listaCirculos.add(circulo);
-            cola.poll();
+    
+    public String codificarMorse(Queue<String> codigos) {
+        return codificarMorse(codigos, root);
+    }
+    
+    private String codificarMorse(Queue<String> codigos, Node<E> n) {
+        String c = "";
+        if (!codigos.isEmpty()) {
+            c = codigos.poll();
         }
-        sb.append(nodoViajero.data);
-        return sb.toString();
+        if (n == null) {
+            return codificarMorse(codigos);
+        } else if (c.equals("-")) {
+            n.circulo.setFill(Color.LIGHTBLUE);
+            return codificarMorse(codigos, n.left);
+        } else if (c.equals(".")) {
+            n.circulo.setFill(Color.LIGHTBLUE);
+            return codificarMorse(codigos, n.right);
+        } 
+        n.circulo.setFill(Color.LIGHTBLUE);
+        return (String) n.data;
     }
 
     public boolean añadirMorse(String letra, List<String> path) {
@@ -185,12 +183,7 @@ public class BT<E> {
             case ".":
                 if (n.right == null) {
                     int nivel = (int) (n.posY / 50);
-                    if(letra.equals("5")){
-                        n.right = new Node<>((E) letra, n.posX + 10 + (n.hVentana / (nivel * 2)) - niv, n.posY + 55);
-                    }
-                    else{
-                        n.right = new Node<>((E) letra, n.posX + (n.hVentana / (nivel * 2)) - niv, n.posY + 55);
-                    }
+                    n.right = new Node<>((E) letra, n.posX + (hVentana / (nivel * 2)) - niv, n.posY + 55);
                     dibujarLinea(n, n.right);
                     
                 }
@@ -198,12 +191,7 @@ public class BT<E> {
             case "-":
                 if (n.left == null) {
                     int nivel = (int) (n.posY / 50);
-                    if(letra.equals("0")){
-                         n.left = new Node<>((E) letra, n.posX -10- (n.hVentana / (nivel * 2)) + niv, n.posY + 55);
-                    }
-                    else{
-                        n.left = new Node<>((E) letra, n.posX - (n.hVentana / (nivel * 2)) + niv, n.posY + 55);
-                    }
+                    n.left = new Node<>((E) letra, n.posX - (hVentana / (nivel * 2)) + niv, n.posY + 55);
                     dibujarLinea(n, n.left);
                     
                 }
@@ -292,9 +280,16 @@ public class BT<E> {
         }
     }
 
-    public void cambiarColor(ArrayList<javafx.scene.shape.Circle> nodos) {
-        for (javafx.scene.shape.Circle n : nodos) {
-            n.setStroke(Color.BLACK);
+    public void reiniciarColor() {
+        root.circulo.setFill(Color.BLACK);
+        reiniciarColor(root);
+    }
+    
+    private void reiniciarColor(Node<E> n) {
+        if (n != null) {
+            n.circulo.setFill(Color.BLACK);
+            reiniciarColor(n.left);
+            reiniciarColor(n.right);
         }
     }
 }
