@@ -10,64 +10,67 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
-import javafx.util.Duration;
-
+import main.App;
 
 /**
  *
  * @author GeovannyRojas
  */
-public class Sonido extends Thread{
-    private  Media audio;
+public class Sonido extends Thread {
+
+    private Media audio;
     private MediaPlayer reproductor;
     private boolean detener = false;
     private String code;
-    
+
     public Media getAudio() {
         return audio;
     }
-    
-    public void play(String valor){
-        File archivo = new File("src/"+valor+".mp3");
+
+    public void play(String valor) {
+        File archivo = new File("src/" + valor + ".mp3");
         audio = new Media(archivo.toURI().toString());
         reproductor = new MediaPlayer(audio);
         reproductor.play();
     }
-    
-    public void setCode(String code){
+
+    public void setCode(String code) {
         this.code = code;
     }
-    
-    public String getCode(){
+
+    public String getCode() {
         return code;
     }
-    
-    public void sonar(){
+
+    public void sonar() {
         String morse = getCode();
-            if(morse != null){
-                for (int i = 0; i < morse.length(); i++) {
-                    try {
-                        char c = code.charAt(i);
-                        switch(c){
-                            case '.':
-                                play("punto");
-                                Thread.sleep(2000);
-                                break;
-                            case '-':
-                                play("raya");
-                                Thread.sleep(2000);
-                                break;
-                        }   } catch (InterruptedException ex) {
-                        Logger.getLogger(Sonido.class.getName()).log(Level.SEVERE, null, ex);
+        if (morse != null) {
+            for (int i = 0; i < morse.length(); i++) {
+                try {
+                    char c = code.charAt(i);
+                    switch (c) {
+                        case '.':
+                            play("punto");
+                            Thread.sleep(2000);
+                            break;
+                        case '-':
+                            play("raya");
+                            Thread.sleep(2000);
+                            break;
                     }
-             }
-                setCode(null);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(Sonido.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            setCode(null);
         }
     }
-    
+
     @Override
-    public void run(){
-            sonar();
+    public void run() {
+        sonar();
+        App.arbol.cambiarColor(App.arbol.listaCirculos);
+
     }
 
     public MediaPlayer getReproductor() {
@@ -85,5 +88,5 @@ public class Sonido extends Thread{
     public void setDetener(boolean detener) {
         this.detener = detener;
     }
-    
+
 }
