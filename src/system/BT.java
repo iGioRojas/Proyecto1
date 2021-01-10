@@ -6,12 +6,16 @@
 package system;
 
 import java.io.File;
+import static java.lang.Thread.sleep;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
@@ -27,6 +31,7 @@ public class BT<E> {
 
     private Node<E> root;
     private double hVentana = 800/2;
+    private Sonido sonido;
     
     private class Node<E> {
 
@@ -57,6 +62,10 @@ public class BT<E> {
             evento.setFill(Color.WHITE);
 
         }
+    }
+    
+    public BT() {
+        sonido = new Sonido();
     }
 
     public boolean isEmpty() {
@@ -156,15 +165,12 @@ public class BT<E> {
             c = codigos.poll();
         }
         if (n == null) {
-            return codificarMorse(codigos);
+            return "SIN COINCIDENCIA";
         } else if (c.equals("-")) {
-            n.circulo.setFill(Color.LIGHTBLUE);
             return codificarMorse(codigos, n.left);
         } else if (c.equals(".")) {
-            n.circulo.setFill(Color.LIGHTBLUE);
             return codificarMorse(codigos, n.right);
         } 
-        n.circulo.setFill(Color.LIGHTBLUE);
         return (String) n.data;
     }
 
@@ -291,5 +297,52 @@ public class BT<E> {
             reiniciarColor(n.left);
             reiniciarColor(n.right);
         }
+    }
+    
+    private void mostrarCamino(Queue<String> codigos) throws InterruptedException {
+        mostrarCamino(codigos, root);
+    }
+    
+    private void mostrarCamino(Queue<String> codigos, Node<E> n) throws InterruptedException {
+        String signo = "";
+        if (!codigos.isEmpty()) {
+            signo = codigos.poll();
+        }
+        if (n != null) {
+            n.circulo.setFill(Color.BLUE);
+            sleep(1500);
+            if (signo.equals("-")) {
+                sonido.play("raya");
+                mostrarCamino(codigos, n.left);
+            } else if (signo.equals(".")) {
+                sonido.play("punto");
+                mostrarCamino(codigos, n.right);
+            }
+        }
+    }
+    
+    public void pintar(Queue<String> path) {
+        Thread h1 = new Thread(new HiloPintar(path));
+        h1.start();
+    }
+    
+    private class HiloPintar implements Runnable {
+
+        private Queue<String> path;
+        
+        public HiloPintar(Queue<String> path) {
+            this.path = path;
+        }
+        
+        @Override
+        public void run() {
+            try {
+                mostrarCamino(path);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(BT.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        
     }
 }

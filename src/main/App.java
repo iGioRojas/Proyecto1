@@ -74,12 +74,12 @@ public class App extends Application {
                 if (verificarCode(codigo.getText())) {
                     arbol.reiniciarColor();
                     String morse = codigo.getText().replace(" ", "");
+                    String resultado = arbol.codificarMorse(listaCodes(morse));
                     textoAdvertencia.setText("");
-                    textoAdvertencia.setText("El resultado es: "+arbol.codificarMorse(listaCodes(morse)));
-                    Sonido audio = new Sonido();
-                    audio.setCode(morse);
-                    audio.start();
-                    audio = null;
+                    textoAdvertencia.setText("El resultado es: " + resultado);
+                    if (!resultado.equals("SIN COINCIDENCIA")) {
+                        arbol.pintar(listaCodes(morse));
+                    }
                 } else {
                     textoAdvertencia.setText("El código es Incorrecto, agregue solo . y -");
                 }
