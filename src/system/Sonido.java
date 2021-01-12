@@ -6,8 +6,7 @@
 package system;
 
 import java.io.File;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Queue;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 
@@ -15,12 +14,12 @@ import javafx.scene.media.MediaPlayer;
  *
  * @author GeovannyRojas
  */
-public class Sonido extends Thread {
+public class Sonido {
 
     private Media audio;
     private MediaPlayer reproductor;
     private boolean detener = false;
-    private String code;
+    private Queue<String> code;
     
     public Media getAudio() {
         return audio;
@@ -33,41 +32,12 @@ public class Sonido extends Thread {
         reproductor.play();
     }
 
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    public String getCode() {
+    public Queue<String> getCode() {
         return code;
     }
 
-    public void sonar() {
-        String morse = getCode();
-        if (morse != null) {
-            for (int i = 0; i < morse.length(); i++) {
-                try {
-                    char c = code.charAt(i);
-                    switch (c) {
-                        case '.':
-                            play("punto");
-                            Thread.sleep(2000);
-                            break;
-                        case '-':
-                            play("raya");
-                            Thread.sleep(2000);
-                            break;
-                    }
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(Sonido.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-            setCode(null);
-        }
-    }
-
-    @Override
-    public void run() {
-        sonar();
+    public void setCode(Queue<String> code) {
+        this.code = code;
     }
 
     public MediaPlayer getReproductor() {
