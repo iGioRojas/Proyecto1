@@ -34,8 +34,8 @@ public class App extends Application {
     public static Pane root;
     private Button enviar = new Button("Enviar");
     private TextField codigo = new TextField();
-    private Text textoAdvertencia = new Text();
-    public static BT<String> arbol = new BT<>();
+    private static Text textoMuestra = new Text();
+    public BT<String> arbol = new BT<>();
     private Text nombrePagina = new Text("Árbol de Código Morse");
 
     @Override
@@ -48,10 +48,7 @@ public class App extends Application {
         primaryStage.show();
         posicion();
         addNodes();
-        HashMap<String, List<String>> mapaMorse = arbol.leerTraducciones();
-        for (Map.Entry<String, List<String>> dato : mapaMorse.entrySet()) {
-            arbol.añadirMorse(dato.getKey(), dato.getValue());
-        }
+        arbol.llenarArbol();
         accionBoton(enviar);
 
     }
@@ -71,18 +68,9 @@ public class App extends Application {
         boton.setOnAction((new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                if (verificarCode(codigo.getText())) {
+                    String morse = codigo.getText().replace(" ", "").toUpperCase();
                     arbol.reiniciarColor();
-                    String morse = codigo.getText().replace(" ", "");
-                    String resultado = arbol.codificarMorse(listaCodes(morse));
-                    textoAdvertencia.setText("");
-                    textoAdvertencia.setText("El resultado es: " + resultado);
-                    if (!resultado.equals("SIN COINCIDENCIA")) {
-                        arbol.pintar(listaCodes(morse));
-                    }
-                } else {
-                    textoAdvertencia.setText("El código es Incorrecto, agregue solo . y -");
-                }
+                    arbol.pintar(morse);                
             }
         }));
     }
@@ -96,17 +84,7 @@ public class App extends Application {
         }
         return true;
     }
-
-    public static Queue<String> listaCodes(String valor) {
-        Queue<String> cola = new LinkedList<>();
-        for (int i = 0; i < valor.length(); i++) {
-            char c = valor.charAt(i);
-            cola.offer(c + "");
-        }
-
-        return cola;
-    }
-
+    
     public static ArrayList<Node> getAllNodes(Parent root) {
         ArrayList<Node> nodes = new ArrayList<>();
         addAllDescendents(root, nodes);
@@ -125,7 +103,7 @@ public class App extends Application {
     public void addNodes() {
         root.getChildren().add(enviar);
         root.getChildren().add(codigo);
-        root.getChildren().add(textoAdvertencia);
+        root.getChildren().add(textoMuestra);
         root.getChildren().add(nombrePagina);
     }
 
@@ -134,12 +112,16 @@ public class App extends Application {
         enviar.setLayoutY(390);
         codigo.setLayoutX(280);
         codigo.setLayoutY(390);
-        textoAdvertencia.setLayoutX(280);
-        textoAdvertencia.setLayoutY(440);
+        textoMuestra.setLayoutX(280);
+        textoMuestra.setLayoutY(440);
         nombrePagina.setLayoutX(120);
         nombrePagina.setLayoutY(50);
         nombrePagina.setScaleX(2);
         nombrePagina.setScaleY(3);
 
+    }
+    
+    public static void texto(String valor){
+        textoMuestra.setText(valor);
     }
 }

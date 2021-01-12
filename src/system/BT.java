@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -32,7 +33,8 @@ public class BT<E> {
     private Node<E> root;
     private double hVentana = 800/2;
     private Sonido sonido;
-    
+    private HashMap<String, List<String>> mapaMorse = leerTraducciones();
+
     private class Node<E> {
 
         private E data;
@@ -255,6 +257,12 @@ public class BT<E> {
         line.setEndY(fin.posY - (offset * Math.tan(ang)));
         App.agregarNodo(line);
     }
+    
+    public void llenarArbol(){
+        for (Map.Entry<String, List<String>> dato : mapaMorse.entrySet()) {
+            this.añadirMorse(dato.getKey(), dato.getValue());
+        }
+    }
 
     public void anchura() {
         if (!isEmpty()) {
@@ -321,26 +329,37 @@ public class BT<E> {
         }
     }
     
-    public void pintar(Queue<String> path) {
-        Thread h1 = new Thread(new HiloPintar(path));
+    public void pintar(String valor) {
+        Thread h1 = new Thread(new HiloPintar(valor));
         h1.start();
     }
     
     private class HiloPintar implements Runnable {
 
-        private Queue<String> path;
+        private String valor;
         
-        public HiloPintar(Queue<String> path) {
-            this.path = path;
+        public HiloPintar(String valor) {
+            this.valor = valor;
         }
         
         @Override
         public void run() {
-            try {
-                mostrarCamino(path);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(BT.class.getName()).log(Level.SEVERE, null, ex);
+            for (int i = 0; i < valor.length(); i++) {
+                reiniciarColor();
+                List<String> codigo = mapaMorse.get(valor.charAt(i)+"");
+                try {
+                    mostrarCamino(listaCodes(codigo));
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(BT.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                App.texto("El código morse es: "+codigo.toString().replace("[", "").replace("]","").replace(","," "));
             }
+        }
+        
+        public Queue<String> listaCodes(List<String> valor) {
+            Queue<String> cola = new LinkedList<>();
+            cola.addAll(valor);
+            return cola;
         }
         
         
