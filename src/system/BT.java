@@ -6,8 +6,8 @@
 package system;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import static java.lang.Thread.sleep;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -16,7 +16,6 @@ import java.util.Queue;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.Platform;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
@@ -31,9 +30,9 @@ import main.App;
 public class BT<E> {
 
     private Node<E> root;
-    private double hVentana = 800/2;
+    private double hVentana = (double)800/2;
     private Sonido sonido;
-    private HashMap<String, List<String>> mapaMorse = leerTraducciones();
+    private HashMap<String, List<String>> mapaMorse = (HashMap<String,List<String>>)leerTraducciones();
 
     private class Node<E> {
 
@@ -176,12 +175,12 @@ public class BT<E> {
         return (String) n.data;
     }
 
-    public boolean añadirMorse(String letra, List<String> path) {
+    public boolean addMorse(String letra, List<String> path) {
         add((E) "Inicio", null);
-        return añadirMorse(letra, new LinkedList<>(path), root, 29);
+        return addMorse(letra, new LinkedList<>(path), root, 29);
     }
 
-    private boolean añadirMorse(String letra, Queue<String> path, Node<E> n, int niv) {
+    private boolean addMorse(String letra, Queue<String> path, Node<E> n, int niv) {
         String signo = "";
         if (!path.isEmpty()) {
             signo = path.poll();
@@ -195,7 +194,7 @@ public class BT<E> {
                     dibujarLinea(n, n.right);
                     
                 }
-                return añadirMorse(letra, path, n.right, niv);
+                return addMorse(letra, path, n.right, niv);
             case "-":
                 if (n.left == null) {
                     int nivel = (int) (n.posY / 50);
@@ -203,7 +202,7 @@ public class BT<E> {
                     dibujarLinea(n, n.left);
                     
                 }
-                return añadirMorse(letra, path, n.left, niv);
+                return addMorse(letra, path, n.left, niv);
             default:
                 n.data = (E) letra;
                 n.evento.setText(n.data.toString());
@@ -213,8 +212,8 @@ public class BT<E> {
         return true;
     }
 
-    public HashMap<String, List<String>> leerTraducciones() {
-        HashMap<String, List<String>> mapaMorse = new HashMap<>();
+    public Map<String, List<String>> leerTraducciones() {
+        HashMap<String, List<String>> mapMorse = new HashMap<>();
         try (Scanner sc = new Scanner(new File("traducciones.txt"))) {
             while (sc.hasNextLine()) {
                 String[] codigoMorse = sc.nextLine().split("\\|");
@@ -224,12 +223,12 @@ public class BT<E> {
                     char c = codigo.charAt(i);
                     morse.add(c + "");
                 }
-                mapaMorse.put(codigoMorse[0], morse);
+                mapMorse.put(codigoMorse[0], morse);
             }
-        } catch (Exception e) {
-            System.out.println("No hay codes");
+        } catch (FileNotFoundException ex) { 
+            Logger.getLogger(BT.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return mapaMorse;
+        return mapMorse;
     }
 
     private void dibujarNodo(Node<E> n) {
@@ -260,39 +259,11 @@ public class BT<E> {
     
     public void llenarArbol(){
         for (Map.Entry<String, List<String>> dato : mapaMorse.entrySet()) {
-            this.añadirMorse(dato.getKey(), dato.getValue());
+            this.addMorse(dato.getKey(), dato.getValue());
         }
     }
 
-    public void anchura() {
-        if (!isEmpty()) {
-            Queue<Node<E>> cola = new LinkedList<>();
-            cola.offer(root);
-            while (!cola.isEmpty()) {
-                Node<E> n = cola.poll();
-                System.out.print(n.data);
-                if (n.left != null) {
-                    cola.offer(n.left);
-                }
-                if (n.right != null) {
-                    cola.offer(n.right);
-                }
-            }
-        }
-        System.out.println("");
-    }
 
-    public void postOrden() {
-        postOrden(root);
-    }
-
-    private void postOrden(Node<E> p) {
-        if (p != null) {
-            postOrden(p.left);
-            postOrden(p.right);
-            System.out.print(p.data);
-        }
-    }
 
     public void reiniciarColor() {
         root.circulo.setFill(Color.BLACK);
@@ -307,7 +278,21 @@ public class BT<E> {
         }
     }
     
-    private void mostrarCamino(Queue<String> codigos) throws InterruptedException {
+    
+    
+    public void pintar(String valor) {
+        Thread h1 = new Thread(new HiloPintar(valor));
+        h1.start();
+    }
+    
+    private class HiloPintar implements Runnable {
+
+        private String valor;
+        
+        public HiloPintar(String valor) {
+            this.valor = valor;
+        }
+        private void mostrarCamino(Queue<String> codigos) throws InterruptedException {
         mostrarCamino(codigos, root);
     }
     
@@ -328,31 +313,18 @@ public class BT<E> {
             }
         }
     }
-    
-    public void pintar(String valor) {
-        Thread h1 = new Thread(new HiloPintar(valor));
-        h1.start();
-    }
-    
-    private class HiloPintar implements Runnable {
-
-        private String valor;
-        
-        public HiloPintar(String valor) {
-            this.valor = valor;
-        }
-        
         @Override
         public void run() {
             for (int i = 0; i < valor.length(); i++) {
-                reiniciarColor();
-                List<String> codigo = mapaMorse.get(valor.charAt(i)+"");
                 try {
+                    reiniciarColor();
+                    List<String> codigo = mapaMorse.get(valor.charAt(i)+"");
                     mostrarCamino(listaCodes(codigo));
+                    
+                    App.texto("El código morse es: "+codigo.toString().replace("[", "").replace("]","").replace(","," "));
                 } catch (InterruptedException ex) {
                     Logger.getLogger(BT.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                App.texto("El código morse es: "+codigo.toString().replace("[", "").replace("]","").replace(","," "));
             }
         }
         

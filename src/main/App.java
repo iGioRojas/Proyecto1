@@ -6,11 +6,7 @@
 package main;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Queue;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -23,7 +19,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import system.BT;
-import system.Sonido;
 
 /**
  *
@@ -35,7 +30,7 @@ public class App extends Application {
     private Button enviar = new Button("Enviar");
     private TextField codigo = new TextField();
     private static Text textoMuestra = new Text();
-    public BT<String> arbol = new BT<>();
+    private BT<String> arbol = new BT<>();
     private Text nombrePagina = new Text("Árbol de Código Morse");
 
     @Override
@@ -85,7 +80,7 @@ public class App extends Application {
         return true;
     }
     
-    public static ArrayList<Node> getAllNodes(Parent root) {
+    public static List<Node> getAllNodes(Parent root) {
         ArrayList<Node> nodes = new ArrayList<>();
         addAllDescendents(root, nodes);
         return nodes;
@@ -118,7 +113,6 @@ public class App extends Application {
         nombrePagina.setLayoutY(50);
         nombrePagina.setScaleX(2);
         nombrePagina.setScaleY(3);
-
     }
     
     public static void texto(String valor){
