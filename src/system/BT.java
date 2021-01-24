@@ -5,13 +5,23 @@
  */
 package system;
 
+import java.io.File;
+import static java.lang.Thread.sleep;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
+import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import main.App;
 
 /**
@@ -19,44 +29,55 @@ import main.App;
  * @author El Pitagoras
  */
 public class BT<E> {
-    
+
     private Node<E> root;
-    
+    private double hVentana = 800/2;
+    private Sonido sonido;
+    private HashMap<String, List<String>> mapaMorse = leerTraducciones();
+
     private class Node<E> {
-        
+
         private E data;
         private Node<E> left;
         private Node<E> right;
-        
+
         private Circle circulo;
-        private double hVentana;
+        
         private double posX;
         private double posY;
-        
-        private String evento;
-        private double probabilidad;
-        
+        private Text evento;
+
         public Node(E data) {
             this.data = data;
         }
-        
+
         public Node(E data, double posX, double posY) {
-            this.hVentana = 600/2;
             this.data = data;
             this.posX = posX;
             this.posY = posY;
-            circulo = new Circle(5);
-            circulo.setLayoutX(posX);
-            circulo.setLayoutY(posY);
+            circulo = new Circle(posX + 5, posY - 5, 10);
+            circulo.setStroke(Color.BLACK);
+            evento = new Text((String) data);
+            evento.setLayoutX(posX);
+            evento.setLayoutY(posY);
+            evento.setTextAlignment(TextAlignment.CENTER);
+            evento.setFill(Color.WHITE);
+
         }
     }
     
+    public BT() {
+        sonido = new Sonido();
+    }
+
     public boolean isEmpty() {
         return root == null;
     }
-    
+
     public boolean add(E child, E parent) {
-        Node<E> nchild = new Node<>(child, 400, 50);
+        Node<E> nchild = new Node<>(child, hVentana, 50);
+        nchild.evento.setLayoutX(nchild.posX - 10);
+        nchild.circulo.setScaleX(3);
         if (isEmpty() && parent == null) {
             root = nchild;
             dibujarNodo(root);
@@ -77,61 +98,33 @@ public class BT<E> {
         }
         return false;
     }
-    
-    public boolean remove(E data) {
-        Node<E> p = searchNode(data);
-        if (p == null) {
-            return false;
-        }
-        if (p.left != null && p.left.data.equals(data)) {
-            p.left = null;
-        } else {
-            p.right = null;
-        }
-        return true;
-    }
-    
     public int size() {
         return size(root);
     }
-    
+
     private int size(Node<E> n) {
         if (n == null) {
             return 0;
         }
         return 1 + size(n.left) + size(n.right);
     }
-    
+
     public int height() {
         return height(root);
     }
-    
+
     private int height(Node<E> n) {
         if (n == null) {
             return 0;
         }
-        
+
         return 1 + Math.max(height(n.left), height(n.right));
     }
-    
-    public int countLeaves() {
-        return countLeaves(root);
-    }
-    
-    private int countLeaves(Node<E> n) {
-        if (n == null) {
-            return 0;
-        } else if (n.left == null && n.right == null) {
-            return 1;
-        } else {
-            return countLeaves(n.left) + countLeaves(n.right);
-        }
-    }
-    
+
     private Node<E> searchNode(E data) {
         return searchNode(data, root);
     }
-    
+
     private Node<E> searchNode(E data, Node<E> p) {
         if (p == null) {
             return p;
@@ -145,11 +138,11 @@ public class BT<E> {
             return searchNode(data, p.right);
         }
     }
-    
+
     public Node<E> searchParent(E data) {
         return searchParent(data, root);
     }
-    
+
     private Node<E> searchParent(E data, Node<E> n) {
         if (n == null) {
             return n;
@@ -164,28 +157,6 @@ public class BT<E> {
         }
     }
     
-    public E decision(List<String> lado) {
-        Node<E> resultado = decision(new LinkedList<>(lado), root);
-        return resultado != null ? resultado.data : (E) "Incertidumbre";
-    }
-    
-    private Node<E> decision(Queue<String> lado, Node<E> n) {
-        String l = "";
-        if (!lado.isEmpty()) {
-            l = lado.poll();
-        }
-        if (n == null) {
-            return null;
-        } else if (l.equals("YES")) {
-            return decision(lado, n.right);
-        } else if (l.equals("NO")) {
-            return decision(lado, n.left);
-        } else if (n.left == null && n.right == null) {
-            return n;
-        }
-        return null;
-    }
-    
     public String codificarMorse(Queue<String> codigos) {
         return codificarMorse(codigos, root);
     }
@@ -196,64 +167,83 @@ public class BT<E> {
             c = codigos.poll();
         }
         if (n == null) {
-            return codificarMorse(codigos);
-        } else if (!n.data.equals("-") && !n.data.equals(".")) {
-            return n.data + codificarMorse(codigos);
+            return "SIN COINCIDENCIA";
         } else if (c.equals("-")) {
             return codificarMorse(codigos, n.left);
         } else if (c.equals(".")) {
             return codificarMorse(codigos, n.right);
         } 
-        return "";
+        return (String) n.data;
     }
-    
+
     public boolean añadirMorse(String letra, List<String> path) {
         add((E) "Inicio", null);
-        return añadirMorse(letra, new LinkedList<>(path), root);
+        return añadirMorse(letra, new LinkedList<>(path), root, 29);
     }
-    
-    private boolean añadirMorse(String letra, Queue<String> path, Node<E> n) {
+
+    private boolean añadirMorse(String letra, Queue<String> path, Node<E> n, int niv) {
         String signo = "";
         if (!path.isEmpty()) {
             signo = path.poll();
         }
+        niv -= 1;
         switch (signo) {
             case ".":
                 if (n.right == null) {
-                    int nivel = (int) (n.posY/50);
-                    n.right = new Node<>((E) signo, n.posX + (n.hVentana/(nivel * 2)), n.posY + 50);
-                    dibujarNodo(n.right);
+                    int nivel = (int) (n.posY / 50);
+                    n.right = new Node<>((E) letra, n.posX + (hVentana / (nivel * 2)) - niv, n.posY + 55);
                     dibujarLinea(n, n.right);
-                    System.out.println("Derecha");
+                    
                 }
-                return añadirMorse(letra, path, n.right);
+                return añadirMorse(letra, path, n.right, niv);
             case "-":
                 if (n.left == null) {
-                    int nivel = (int) (n.posY/50);
-                    n.left = new Node<>((E) signo, n.posX - (n.hVentana/(nivel * 2)), n.posY + 50);
-                    dibujarNodo(n.left);
+                    int nivel = (int) (n.posY / 50);
+                    n.left = new Node<>((E) letra, n.posX - (hVentana / (nivel * 2)) + niv, n.posY + 55);
                     dibujarLinea(n, n.left);
-                    System.out.println("Izquierda");
+                    
                 }
-                return añadirMorse(letra, path, n.left);
+                return añadirMorse(letra, path, n.left, niv);
             default:
                 n.data = (E) letra;
+                n.evento.setText(n.data.toString());
+                dibujarNodo(n);
                 break;
         }
         return true;
     }
-    
-    private void dibujarNodo(Node<E> n){
-        App.agregarNodo(n.circulo);
+
+    public HashMap<String, List<String>> leerTraducciones() {
+        HashMap<String, List<String>> mapaMorse = new HashMap<>();
+        try (Scanner sc = new Scanner(new File("traducciones.txt"))) {
+            while (sc.hasNextLine()) {
+                String[] codigoMorse = sc.nextLine().split("\\|");
+                List<String> morse = new LinkedList<>();
+                String codigo = codigoMorse[1].replace(" ", "");
+                for (int i = 0; i < codigo.length(); i++) {
+                    char c = codigo.charAt(i);
+                    morse.add(c + "");
+                }
+                mapaMorse.put(codigoMorse[0], morse);
+            }
+        } catch (Exception e) {
+            System.out.println("No hay codes");
+        }
+        return mapaMorse;
     }
-    
+
+    private void dibujarNodo(Node<E> n) {
+        App.agregarNodo(n.circulo);
+        App.agregarNodo(n.evento);
+    }
+
     private void dibujarLinea(Node<E> ini, Node<E> fin) {
         Line line = new Line();
-        int offset = 6;
+        int offset = 2;
         double difX = Math.abs(ini.posX - fin.posX);
         double difY = Math.abs(fin.posY - ini.posY);
-        double ang = Math.atan(difY/difX);
-        
+        double ang = Math.atan(difY / difX);
+
         if (fin.equals(ini.left)) {
             line.setStartX(ini.posX - offset);
             line.setEndX(fin.posX + offset);
@@ -268,20 +258,12 @@ public class BT<E> {
         App.agregarNodo(line);
     }
     
-    public double estimarProbabilidad(String palabra) {
-        return estimarProbabilidad(palabra, root);
-    }
-    
-    private double estimarProbabilidad(String palabra, Node<E> n) {
-        if (n == null) {
-            return 0;
-        } else if (n.evento.equals(palabra)) {
-            return n.probabilidad;
-        } else {
-            return n.probabilidad * (estimarProbabilidad(palabra, n.left) + estimarProbabilidad(palabra, n.right));
+    public void llenarArbol(){
+        for (Map.Entry<String, List<String>> dato : mapaMorse.entrySet()) {
+            this.añadirMorse(dato.getKey(), dato.getValue());
         }
     }
-    
+
     public void anchura() {
         if (!isEmpty()) {
             Queue<Node<E>> cola = new LinkedList<>();
@@ -299,16 +281,87 @@ public class BT<E> {
         }
         System.out.println("");
     }
-    
+
     public void postOrden() {
         postOrden(root);
     }
-    
+
     private void postOrden(Node<E> p) {
         if (p != null) {
             postOrden(p.left);
             postOrden(p.right);
             System.out.print(p.data);
         }
+    }
+
+    public void reiniciarColor() {
+        root.circulo.setFill(Color.BLACK);
+        reiniciarColor(root);
+    }
+    
+    private void reiniciarColor(Node<E> n) {
+        if (n != null) {
+            n.circulo.setFill(Color.BLACK);
+            reiniciarColor(n.left);
+            reiniciarColor(n.right);
+        }
+    }
+    
+    private void mostrarCamino(Queue<String> codigos) throws InterruptedException {
+        mostrarCamino(codigos, root);
+    }
+    
+    private void mostrarCamino(Queue<String> codigos, Node<E> n) throws InterruptedException {
+        String signo = "";
+        if (!codigos.isEmpty()) {
+            signo = codigos.poll();
+        }
+        if (n != null) {
+            n.circulo.setFill(Color.BLUE);
+            sleep(1500);
+            if (signo.equals("-")) {
+                sonido.play("raya");
+                mostrarCamino(codigos, n.left);
+            } else if (signo.equals(".")) {
+                sonido.play("punto");
+                mostrarCamino(codigos, n.right);
+            }
+        }
+    }
+    
+    public void pintar(String valor) {
+        Thread h1 = new Thread(new HiloPintar(valor));
+        h1.start();
+    }
+    
+    private class HiloPintar implements Runnable {
+
+        private String valor;
+        
+        public HiloPintar(String valor) {
+            this.valor = valor;
+        }
+        
+        @Override
+        public void run() {
+            for (int i = 0; i < valor.length(); i++) {
+                reiniciarColor();
+                List<String> codigo = mapaMorse.get(valor.charAt(i)+"");
+                try {
+                    mostrarCamino(listaCodes(codigo));
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(BT.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                App.texto("El código morse es: "+codigo.toString().replace("[", "").replace("]","").replace(","," "));
+            }
+        }
+        
+        public Queue<String> listaCodes(List<String> valor) {
+            Queue<String> cola = new LinkedList<>();
+            cola.addAll(valor);
+            return cola;
+        }
+        
+        
     }
 }
